@@ -33,7 +33,7 @@ import jiraiyah.jifluid.interfaces.IWrappedFluidProvider;
 import jiraiyah.jinventory.WrappedInventoryStorage;
 import jiraiyah.jinventory.interfaces.IWrappedInventoryProvider;
 import jiraiyah.jiralib.blockentity.UpdatableBE;
-import jiraiyah.jiralib.interfaces.ITickBE;
+import jiraiyah.jiralib.interfaces.ITickSyncBE;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
@@ -44,7 +44,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -61,7 +60,7 @@ import static jiraiyah.reference.BEKeys.HAS_INVENTORY;
  * @author jiraiyah
  */
 @SuppressWarnings("unused")
-public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
+public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickSyncBE,
         IWrappedInventoryProvider, IWrappedEnergyProvider, IWrappedFluidProvider
 {
     /**
@@ -78,7 +77,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      * carefully to ensure thread safety and consistency across different
      * operations.</p>
      */
-    private final WrappedInventoryStorage<SimpleInventory> inventory = new WrappedInventoryStorage<>();
+    private final WrappedInventoryStorage inventory = new WrappedInventoryStorage();
 
     /**
      * The wrapped fluid storage instance used by this provider.
@@ -88,7 +87,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      * provides methods to interact with them.
      * </p>
      */
-    private final WrappedFluidStorage<SyncedFluidStorage> fluidStorage = new WrappedFluidStorage<>();
+    private final WrappedFluidStorage fluidStorage = new WrappedFluidStorage();
 
     /**
      * The {@link WrappedEnergyStorage} instance that holds the current energy storage.
@@ -101,7 +100,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      * energy storage units with specified parameters.
      * </p>
      */
-    private final WrappedEnergyStorage<SyncedEnergyStorage> energyStorage = new WrappedEnergyStorage<>();
+    private final WrappedEnergyStorage energyStorage = new WrappedEnergyStorage();
 
     /**
      * Constructs a new instance of the AbstractAdvancedBE block entity.
@@ -146,7 +145,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
     }
 
     /**
-     * Adds a new energy storage to this block entity with the specified capacity,
+     * Adds a new synced energy storage to this block entity with the specified capacity,
      * maximum insertion rate, maximum extraction rate, and direction.
      * <p>
      * This method allows the block entity to manage energy storage by adding a
@@ -173,7 +172,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
     @Override
     public void AddEnergyStorage(int capacity, int maxInsert, int maxExtract, Direction direction)
     {
-        energyStorage.addStorage(this, capacity, maxInsert, maxExtract, direction);
+        energyStorage.addSyncedStorage(this, capacity, maxInsert, maxExtract, direction);
     }
 
     /**
@@ -188,13 +187,13 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      *         representing the energy storage for this block entity.
      */
     @Override
-    public WrappedEnergyStorage<SyncedEnergyStorage> getEnergyStorage()
+    public WrappedEnergyStorage getEnergyStorage()
     {
         return this.energyStorage;
     }
 
     /**
-     * Adds a fluid storage unit to this block entity.
+     * Adds a synced fluid storage unit to this block entity.
      * <p>
      * This method allows the block entity to manage fluid storage by specifying
      * its maximum capacity. The fluid storage is used to hold and manipulate
@@ -210,7 +209,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
     @Override
     public void addFluidStorage(long capacity)
     {
-        fluidStorage.addStorage(this, capacity);
+        fluidStorage.addSyncedStorage(this, capacity);
     }
 
     /**
@@ -219,7 +218,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      * @return The wrapped fluid storage instance.
      */
     @Override
-    public WrappedFluidStorage<SyncedFluidStorage> getFluidStorage()
+    public WrappedFluidStorage getFluidStorage()
     {
         return this.fluidStorage;
     }
@@ -232,7 +231,7 @@ public abstract class AbstractAdvancedBE extends UpdatableBE implements ITickBE,
      * @return The WrappedInventoryStorage instance containing the block entity's inventory.
      */
     @Override
-    public WrappedInventoryStorage<SimpleInventory> getInventory()
+    public WrappedInventoryStorage getInventory()
     {
         return this.inventory;
     }

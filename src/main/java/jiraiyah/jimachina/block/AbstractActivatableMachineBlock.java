@@ -58,10 +58,10 @@ import net.minecraft.world.World;
  * Note: This class relies on the Minecraft game engine's block and world mechanics.
  * </p>
  *
- * @see AbstractMachineBlock
+ * @see AbstractMachineBase
  * @author jiraiyah
  */
-public abstract class AbstractActivatableMachineBlock extends AbstractMachineBlock
+public abstract class AbstractActivatableMachineBlock extends AbstractMachineBase
 {
     /**
      * The property that determines whether the block is activated or not.

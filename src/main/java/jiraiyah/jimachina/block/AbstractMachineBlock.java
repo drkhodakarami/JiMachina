@@ -24,131 +24,92 @@
 
 package jiraiyah.jimachina.block;
 
-import com.mojang.serialization.MapCodec;
-import jiraiyah.jiralib.block.AbstractHorizontalDirectionBlock;
-import jiraiyah.jiralib.interfaces.ITickBE;
 import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalFacingBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * The abstract class for machine blocks, providing block entity functionality and handling base operations.
- * This class extends {@link AbstractHorizontalDirectionBlock} and implements {@link BlockEntityProvider}.
- * It is designed to be extended by specific machine block implementations.
+ * The {@code AbstractMachineBlock} class serves as a foundational class for creating machine blocks
+ * within the game world. It extends the {@code AbstractActivatableMachineBlock}, inheriting
+ * its activation capabilities and providing a base structure for more complex machine
+ * implementations.
+ * <p>
+ * This class is designed to be subclassed by specific machine block types that require
+ * additional functionality beyond simple activation. By extending this class, developers
+ * can leverage the activation framework and focus on implementing machine-specific
+ * behaviors and properties.
+ * </p>
  *
- * <p>It provides methods for handling block events, creating tickers, and screen handler factories.</p>
- *
- * @see AbstractHorizontalDirectionBlock
- * @see BlockEntityProvider
- * @see ITickBE
- * @see BlockEntityTicker
- * @see NamedScreenHandlerFactory
- * @see BlockState
- * @see World
- * @see BlockPos
- * @see BlockEntity
- * @see BlockEntityType
- * @see MapCodec
- * @see HorizontalFacingBlock
- *
- * @author jiraiyah
+ * <p>
+ * Example usage:
+ * <pre>{@code
+ * public class AdvancedMachineBlock extends AbstractMachineBlock {
+ *     // Custom implementation details
+ * }
+ * }</pre>
+ * </p>
  */
 @SuppressWarnings("unused")
-public abstract class AbstractMachineBlock extends AbstractHorizontalDirectionBlock implements BlockEntityProvider
+public abstract class AbstractMachineBlock extends AbstractActivatableMachineBlock
 {
     /**
-     * The codec for serializing and deserializing this block.
-     */
-    protected MapCodec<? extends AbstractMachineBlock> CODEC;
-
-    /**
-     * Constructs an AbstractMachineBlock with the specified settings.
+     * Constructs a new instance of `AbstractMachineBlock` with the specified settings.
      *
-     * @param settings The settings for the block.
+     * <p>This constructor initializes the `AbstractMachineBlock` block using the provided
+     * `AbstractBlock.Settings`. The settings parameter allows customization of
+     * various block properties such as hardness, resistance, and other block
+     * behaviors specific to the Minecraft environment.</p>
+     *
+     * @param settings the settings used to configure the block properties.
+     *                 This parameter must not be null and should be configured
+     *                 according to the desired block characteristics.
      */
     public AbstractMachineBlock(AbstractBlock.Settings settings)
     {
-        super(settings, true);
+        super(settings);
     }
 
     /**
-     * Returns the codec used for this block.
+     * Checks if the block associated with the given {@link BlockState} can provide
+     * a redstone comparator output. This is typically used to determine if the block
+     * can interact with redstone components by providing a signal strength based on
+     * its internal state or contents.
      *
-     * @return The codec for this block.
+     * @param state the {@link BlockState} representing the current state of the block
+     *              in the world. This state may include properties such as the block's
+     *              type, orientation, and any other state-specific attributes.
+     * @return true if the block can provide a comparator output, indicating that it
+     *         can be used in redstone circuits to emit a signal; false otherwise.
      */
     @Override
-    protected MapCodec<? extends HorizontalFacingBlock> getCodec()
+    protected boolean hasComparatorOutput(BlockState state)
     {
-        return CODEC;
+        return true;
     }
 
     /**
-     * Handles synchronized block events. This method is called when a block event is triggered.
+     * Calculates the redstone comparator output signal strength for the block at the specified
+     * position in the world. This method is typically used to determine the signal strength
+     * emitted by the block based on its current state and any relevant world conditions.
      *
-     * @param state The block state.
-     * @param world The world in which the block is located.
-     * @param pos   The position of the block.
-     * @param type  The type of the event.
-     * @param data  The data associated with the event.
-     * @return True if the event was handled successfully, false otherwise.
+     * @param state the {@link BlockState} representing the current state of the block. This
+     *              includes properties such as type, orientation, and any other state-specific
+     *              attributes that may affect the comparator output.
+     * @param world the {@link World} object representing the world in which the block resides.
+     *              This provides access to world-specific data that may influence the block's
+     *              behavior, such as time of day or neighboring blocks.
+     * @param pos   the {@link BlockPos} indicating the precise location of the block within
+     *              the world. This is used to access the block's position-specific data and
+     *              interactions with adjacent blocks.
+     * @return an integer value representing the comparator output signal strength, typically
+     *         ranging from 0 (no signal) to 15 (maximum signal). The exact value is determined
+     *         by the block's state and any relevant world conditions.
      */
     @Override
-    protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data)
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos)
     {
-        super.onSyncedBlockEvent(state, world, pos, type, data);
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        return blockEntity != null && blockEntity.onSyncedBlockEvent(type, data);
-    }
-
-    /**
-     * Returns a ticker for the block entity. This method is used to create a ticker for the block entity.
-     *
-     * @param world The world in which the block is located.
-     * @param state The block state.
-     * @param type  The type of the block entity.
-     * @return A ticker for the block entity, or null if no ticker is available.
-     */
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type)
-    {
-        return ITickBE.createTicker(world);
-    }
-
-    /**
-     * Validates the ticker for the block entity. This method checks if the given type matches the expected type.
-     *
-     * @param givenType   The given block entity type.
-     * @param expectedType The expected block entity type.
-     * @param ticker      The ticker to validate.
-     * @return The validated ticker, or null if the types do not match.
-     */
-    @Nullable
-    protected static <E extends BlockEntity, A extends BlockEntity> BlockEntityTicker<A> validateTicker(
-            BlockEntityType<A> givenType, BlockEntityType<E> expectedType, BlockEntityTicker<A> ticker)
-    {
-        return expectedType == givenType ? ticker : null;
-    }
-
-    /**
-     * Creates a screen handler factory for the block entity. This method is used to create a screen handler factory.
-     *
-     * @param state The block state.
-     * @param world The world in which the block is located.
-     * @param pos   The position of the block.
-     * @return A screen handler factory, or null if no factory is available.
-     */
-    @Nullable
-    @Override
-    protected NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        return blockEntity instanceof NamedScreenHandlerFactory ? (NamedScreenHandlerFactory)blockEntity : null;
+        return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
     }
 }

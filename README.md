@@ -24,7 +24,7 @@ them to your project side by side of the dependency for this library.
 
 This library is using repsy for maven publishing system. Follow the guideline bellow to make dependency for your mod.
 
-### ➤ Latest Version: 1.0.0
+### ➤ Latest Version: 1.1.2
 
 First you need to add the maven to your `build.gradle` repositories:
 
